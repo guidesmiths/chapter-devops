@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+  k6:
+    image: grafana/k6
+    volumes:
+      - type: bind
+        source: ./scripts/test.js
+        target: /k6/scripts/test.js
+    env_file: ./.env

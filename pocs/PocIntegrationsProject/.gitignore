@@ -1,0 +1,6 @@
+# Local config
+*/.env
+
+
+# IDE
+.idea
