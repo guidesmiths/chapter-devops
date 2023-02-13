@@ -1,0 +1,16 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: pod-kill-example
+  namespace: chaos-mesh
+spec:
+  action: pod-kill
+  mode: fixed-percent
+  value: '50'  
+  selector:
+    namespaces:
+      - chaos-backend
+    labelSelectors:
+      'app.kubernetes.io/name': 'chaos-backend'
+  gracePeriod: 5
+  duration: '100s'

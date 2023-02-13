@@ -1,0 +1,21 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: stress-scenario
+  namespace: chaos-mesh
+spec:
+  mode: all
+  containerNames: null 
+  selector:  
+    namespaces:
+      - chaos-backend
+    labelSelectors:
+        'app.kubernetes.io/name': 'chaos-backend'
+  duration: '1h'
+  stressors:
+    memory:
+      workers: 10
+      size: '200Mi'
+    cpu:
+      workers: 50
+      load: 100
