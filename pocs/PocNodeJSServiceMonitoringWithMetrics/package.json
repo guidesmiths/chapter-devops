@@ -1,0 +1,32 @@
+{
+  "name": "nodejs-prometheus-testing",
+  "version": "1.0.0",
+  "description": "Testing project to play with prometheus",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:debug": "DEBUG=testing* node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/gentoolab/nodejs-prometheus-testing.git"
+  },
+  "author": "Jose Vicente Giner Sanchez <jvginer@gentooxativa.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/gentoolab/nodejs-prometheus-testing/issues"
+  },
+  "homepage": "https://gitlab.com/gentoolab/nodejs-prometheus-testing#readme",
+  "dependencies": {
+    "debug": "^4.3.4",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.1",
+    "prom-client": "^14.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.14.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
+  }
+}
