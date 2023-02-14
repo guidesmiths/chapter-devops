@@ -1,0 +1,49 @@
+{
+  "name": "he-load-testing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky install",
+    "prebundle": "rm -rfv ./dist",
+    "set:unix:source:env": "echo \"Run command manually: 'source ./.env'\"",
+    "bundle": "webpack",
+    "k6:run:dist:debug": "K6_HTTP_DEBUG=full K6_DURATION=1s npm run k6:run:dist",
+    "k6:run:dist:debug:paused": "K6_PAUSED=true npm run k6:run:dist:debug",
+    "k6:run:dist:resume": "k6 resume",
+    "k6:run:dist": "./bin/k6/run-dist.sh",
+    "prestart": "npm run bundle",
+    "start": "npm run k6:run:dist",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/infinitaslearning/he-load-testing.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/infinitaslearning/he-load-testing/issues"
+  },
+  "homepage": "https://github.com/infinitaslearning/he-load-testing#readme",
+  "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/preset-env": "^7.14.4",
+    "@commitlint/cli": "^12.1.4",
+    "@commitlint/config-conventional": "^12.1.4",
+    "babel-loader": "^8.2.2",
+    "core-js": "^3.13.1",
+    "eslint": "^7.27.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
+    "husky": "^6.0.0",
+    "k6": "0.0.0",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "webpack-merge": "^5.8.0"
+  }
+}
