@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A VPC with one private subnets
+             Network routing for the private subnets will be configured to allow outbound access via a set of NAT Gateways.
+
+Mappings:
+  # The VPC and subnet configuration is passed in via the environment spec.
+  SubnetConfig:
+    VPC:
+      CIDR: '{{ environment.inputs.vpc_cidr}}'
+    Private1:
+      CIDR: '{{ environment.inputs.private_subnet_one_cidr}}'
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+  PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: !FindInMap ['SubnetConfig', 'Private1', 'CIDR']
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+         - 0
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      MapPublicIpOnLaunch: false
+  PrivateSubnet1RouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+  PrivateSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateSubnet1RouteTable
+      SubnetId: !Ref PrivateSubnet1
+  PrivateSubnet1DefaultRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PrivateSubnet1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+  ApprunnerVpcConnector:
+    Type: AWS::AppRunner::VpcConnector
+    Properties:
+      VpcConnectorName: '{{environment.name}}-vpc-connector'
+      Subnets:
+        - !Ref 'PrivateSubnet1'
+      SecurityGroups: 
+        - !GetAtt VPC.DefaultSecurityGroup
+
+Outputs:
+  VPC:
+    Description: The ID of the VPC that this stack is deployed in
+    Value: !Ref 'VPC'
+  PrivateSubnet1:
+    Description: Private subnet one
+    Value: !Ref 'PrivateSubnet1'
+  VPCSecurityGroup:
+    Description: Default security group for VPC
+    Value: !GetAtt VPC.DefaultSecurityGroup
+  VpcConnectorArn:
+    Description: ARN of the VPC connector
+    Value: !GetAtt ApprunnerVpcConnector.VpcConnectorArn

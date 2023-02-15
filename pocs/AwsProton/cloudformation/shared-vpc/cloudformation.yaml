@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A VPC with one private subnets
+  Network routing for the private subnets will be configured to allow outbound access via a set of NAT Gateways.
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: 10.0.0.0/16
+    Public1:
+      CIDR: 10.0.0.0/18
+    Private1:
+      CIDR: 10.0.128.0/18
+    ApprunnerVpcConnector:
+      name: 'apprunner'
+
+
+Resources:
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: !FindInMap ["SubnetConfig", "VPC", "CIDR"]
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+
+  PublicSubnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: !FindInMap ["SubnetConfig", "Public1", "CIDR"]
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: { Ref: "AWS::Region" }
+      MapPublicIpOnLaunch: true
+  PublicSubnet1RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+  PublicSubnet1RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicSubnet1RouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicSubnet1DefaultRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref PublicSubnet1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+    DependsOn:
+      - GatewayAttachement
+  PublicSubnet1EIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+  PublicSubnet1NATGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      AllocationId: !GetAtt
+        - PublicSubnet1EIP
+        - AllocationId
+
+  PrivateSubnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: !FindInMap ["SubnetConfig", "Private1", "CIDR"]
+      VpcId: !Ref VPC
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: { Ref: "AWS::Region" }
+      MapPublicIpOnLaunch: false
+  PrivateSubnet1RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+  PrivateSubnet1RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PrivateSubnet1RouteTable
+      SubnetId: !Ref PrivateSubnet1
+  PrivateSubnet1DefaultRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref PrivateSubnet1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref PublicSubnet1NATGateway
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+  GatewayAttachement:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  ApprunnerVpcConnector:
+    Type: AWS::AppRunner::VpcConnector
+    Properties:
+      VpcConnectorName: !FindInMap ["SubnetConfig", "ApprunnerVpcConnector", "name"]
+      Subnets:
+        - !Ref "PublicSubnet1"
+        - !Ref "PrivateSubnet1"
+      SecurityGroups:
+        - !GetAtt VPC.DefaultSecurityGroup
+Outputs:
+  VPC:
+    Description: The ID of the VPC that this stack is deployed in
+    Value: !Ref "VPC"
+  PublicSubnet1:
+    Description: Public subnet one
+    Value: !Ref "PublicSubnet1"
+  PrivateSubnet1:
+    Description: Private subnet one
+    Value: !Ref "PrivateSubnet1"
+  VPCSecurityGroup:
+    Description: Default security group for VPC
+    Value: !GetAtt VPC.DefaultSecurityGroup
+  VpcConnectorArn:
+    Description: ARN of the VPC connector
+    Value: !GetAtt ApprunnerVpcConnector.VpcConnectorArn
