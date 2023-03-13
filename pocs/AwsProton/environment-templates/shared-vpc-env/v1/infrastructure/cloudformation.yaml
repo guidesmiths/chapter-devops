@@ -25,6 +25,9 @@ Resources:
       Tags:
         - Key: "0"
           Value: "ProtonPOC"
+      Tags:
+        - Key: "1"
+          Value: "SharedServices"
 
   PublicSubnet1:
     Type: "AWS::EC2::Subnet"
