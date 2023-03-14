@@ -113,18 +113,18 @@ Resources:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
-  # ApprunnerVpcConnector:
-  #   Type: AWS::AppRunner::VpcConnector
-  #   Properties:
-  #     VpcConnectorName: !FindInMap ["SubnetConfig", "ApprunnerVpcConnector", "name"]
-  #       Tags:
-  #         - Key: "proton-poc"
-  #           Value: "ProtonPOC"
-  #     Subnets:
-  #       # - !Ref "PublicSubnet1"
-  #       - !Ref "PrivateSubnet1"
-  #     SecurityGroups:
-  #       - !GetAtt VPC.DefaultSecurityGroup
+  ApprunnerVpcConnector:
+    Type: AWS::AppRunner::VpcConnector
+    Properties:
+      VpcConnectorName: !FindInMap ["SubnetConfig", "ApprunnerVpcConnector", "name"]
+      Tags:
+        - Key: "proton-poc"
+          Value: "ProtonPOC"
+      Subnets:
+        # - !Ref "PublicSubnet1"
+        - !Ref "PrivateSubnet1"
+      SecurityGroups:
+        - !GetAtt VPC.DefaultSecurityGroup
 
 Outputs:
   VPC:
@@ -139,6 +139,6 @@ Outputs:
   VPCSecurityGroup:
     Description: Default security group for VPC
     Value: !GetAtt VPC.DefaultSecurityGroup
-  # VpcConnectorArn:
-  #   Description: ARN of the VPC connector
-  #   Value: !GetAtt ApprunnerVpcConnector.VpcConnectorArn
+  VpcConnectorArn:
+    Description: ARN of the VPC connector
+    Value: !GetAtt ApprunnerVpcConnector.VpcConnectorArn
