@@ -70,3 +70,8 @@ Now that the repository has been created on **Proton** we are able sync _major_ 
 ```
 aws proton create-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "pocs/AwsProton/environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
 ```
+The next steps that I have made to the _environment template_ has been adding _tags_ to the resources for making them easier to get filtered from the console dashboard. As mentioned before modifying any file from `infrastructure/` folder would create a new `minor` version.
+
+From the previous _commit_ described before a _minor_ version `1.1` has been created as a `Draft` for being able to **test** it and _publish_ them in case the updated **Cloudformation** _stack_ looks fine.
+
+![Screenshot_20230314_111038-1](https://user-images.githubusercontent.com/16175933/224968455-222e1035-f21f-429b-8419-d4a83c592339.png)
