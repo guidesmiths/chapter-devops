@@ -23,10 +23,10 @@ Resources:
       EnableDnsSupport: true
       InstanceTenancy: default
       Tags:
-        - Key: "aws:proton:context"
+        - Key: "proton-poc"
           Value: "ProtonPOC"
         - Key: "1"
-          Value: "SharedServices"
+          Value: "proton-poc:shared-services"
 
   PublicSubnet1:
     Type: "AWS::EC2::Subnet"
@@ -39,10 +39,10 @@ Resources:
           - Fn::GetAZs: { Ref: "AWS::Region" }
       MapPublicIpOnLaunch: true
       Tags:
-        - Key: "aws:proton:context"
+        - Key: "proton-poc"
           Value: "ProtonPOC"
         - Key: "1"
-          Value: "SharedServices"
+          Value: "proton-poc:shared-services"
   PublicSubnet1RouteTable:
     Type: "AWS::EC2::RouteTable"
     Properties:
@@ -83,7 +83,7 @@ Resources:
           - Fn::GetAZs: { Ref: "AWS::Region" }
       MapPublicIpOnLaunch: false
       Tags:
-        - Key: "aws:proton:context"
+        - Key: "proton-poc"
           Value: "ProtonPOC"
   PrivateSubnet1RouteTable:
     Type: "AWS::EC2::RouteTable"
@@ -105,7 +105,7 @@ Resources:
     Type: "AWS::EC2::InternetGateway"
     Properties:
       Tags:
-        - Key: "aws:proton:context"
+        - Key: "proton-poc"
           Value: "ProtonPOC"
   GatewayAttachement:
     Type: "AWS::EC2::VPCGatewayAttachment"
@@ -118,7 +118,7 @@ Resources:
   #   Properties:
   #     VpcConnectorName: !FindInMap ["SubnetConfig", "ApprunnerVpcConnector", "name"]
   #       Tags:
-  #         - Key: "aws:proton:context"
+  #         - Key: "proton-poc"
   #           Value: "ProtonPOC"
   #     Subnets:
   #       # - !Ref "PublicSubnet1"

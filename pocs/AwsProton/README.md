@@ -14,27 +14,27 @@ That makes things easy to debug before adding a new template version on Proton.
 It's important to notice that we are choosing a different region for deploying and validating the stacks.
 
 Environment template **Cloudformation** definition being deployed:
-```
-aws cloudformation create-stack --stack-name shared-vpc-test --region eu-west-2 --template-body file://pocs/AwsProton/environment-templates/shared-vpc-env/v1/infrastructure/cloudformation.yaml
+```bash
+aws cloudformation create-stack --stack-name "shared-vpc-test" --region "eu-west-2" --template-body "file://pocs/AwsProton/environment-templates/shared-vpc-env/v1/infrastructure/cloudformation.yaml"
 ```
 
 ## Environment template
 
 Before performing any new step just make sure that your default region makes sense for you. If that's not the case make sure to <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-region">change your account profile default region</a>.
-```
+```bash
 aws configure get region
 ```
 
 A new **Proton** _environment template_ needs to be created and updated on the next steps.
-```
-aws proton create-environment-template --name shared-vpc-env
+```bash
+aws proton create-environment-template --name "shared-vpc-env"
 ```
 
 For being able to update the _environment template_ for linking some definitions a new repository needs to be configured.
 After the following step the template would be available for creating the **Cloudformation** _stack_.
 First of all we would need to list our repositories connections already configured from **Codestar** service.
-```
-aws codestar-connections list-connections --provider-type GitHub
+```bash
+aws codestar-connections list-connections --provider-type "GitHub"
 ```
 Anonymized output:
 ```json
@@ -59,7 +59,7 @@ Anonymized output:
 ```
 Since I'm only able to link my personal account because of access restrictions on the organization one make sure to have the **right permissions**.
 Choose a repository from the list with the `ConnectionStatus` marked as `AVAILABLE` and sync it by running:
-```
+```bash
 aws proton create-repository \
     --name bounteous17/chapter-devops \
     --connection-arn "arn:aws:codestar-connections:eu-west-1:487354732760:connection/69013ae6-a462-4617-ac68-e1c41a9b5937" \
@@ -67,7 +67,7 @@ aws proton create-repository \
     --encryption-key "arn:aws:kms:region-id:123456789012:key/bPxRfiCYEXAMPLEKEY"
 ```
 Now that the repository has been created on **Proton** we are able sync _major_ and _minor_ *template versions for the choosen _environment template_ on every new _commit_ that affects the `infrstructure/` folder generating changes.
-```
+```bash
 aws proton create-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "pocs/AwsProton/environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
 ```
 The next steps that I have made to the _environment template_ has been adding _tags_ to the resources for making them easier to get filtered from the console dashboard. As mentioned before modifying any file from `infrastructure/` folder would create a new `minor` version.
@@ -75,3 +75,92 @@ The next steps that I have made to the _environment template_ has been adding _t
 From the previous _commit_ described before a _minor_ version `1.1` has been created as a `Draft` for being able to **test** it and _publish_ them in case the updated **Cloudformation** _stack_ looks fine.
 
 ![Screenshot_20230314_111038-1](https://user-images.githubusercontent.com/16175933/224968455-222e1035-f21f-429b-8419-d4a83c592339.png)
+
+Let's configure our new _environment_ for testing the `Draft` template version `1.1`.
+```bash
+aws iam list-roles
+```
+Without an _environment_ we would not be able to _deploy_ the _template_ on any place. That's why we decided to create the `development` environment for 
+testing purposes.
+```bash
+aws proton create-environment \
+    --name "development" \
+    --template-name "shared-vpc-env" \
+    --proton-service-role-arn "arn:aws:iam::487354732760:role/service-role/aws-proton-poc" \
+    --template-major-version "1" \
+    --template-minor-version "1" \
+    --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml"
+```
+```json
+{
+    "environment": {
+        "arn": "arn:aws:proton:eu-west-1:487354732760:environment/development",
+        "createdAt": "2023-03-14T12:09:34.083000+01:00",
+        "deploymentStatus": "IN_PROGRESS",
+        "lastDeploymentAttemptedAt": "2023-03-14T12:09:34.083000+01:00",
+        "name": "development",
+        "protonServiceRoleArn": "arn:aws:iam::487354732760:role/service-role/aws-proton-poc",
+        "templateName": "shared-vpc-env"
+    }
+}
+```
+Once the `deploymentStatus` becomes _ready_
+
+It's also possible to list the _environment template_ versions by using the following command:
+```bash
+aws proton list-environment-template-versions --template-name "shared-vpc-env"
+```
+```json
+{
+    "templateVersions": [
+        {
+            "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.0",
+            "createdAt": "2023-03-13T17:19:09.939000+01:00",
+            "description": "[985aeb4] fix: tags definition",
+            "lastModifiedAt": "2023-03-13T17:19:11.843000+01:00",
+            "majorVersion": "1",
+            "minorVersion": "0",
+            "status": "DRAFT",
+            "statusMessage": "",
+            "templateName": "shared-vpc-env"
+        },
+        {
+            "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.1",
+            "createdAt": "2023-03-14T10:16:13.044000+01:00",
+            "description": "[761b382] fix: tags keys",
+            "lastModifiedAt": "2023-03-14T10:16:15.247000+01:00",
+            "majorVersion": "1",
+            "minorVersion": "1",
+            "status": "DRAFT",
+            "statusMessage": "",
+            "templateName": "shared-vpc-env"
+        }
+    ]
+}
+```
+
+Let's now choose the latest version for _publishing_ them an making it available for the developers by using any compatible _service template_.
+```bash
+aws proton update-environment-template-version \
+    --template-name "shared-vpc-env" \
+    --major-version "1" \
+    --minor-version "1" \
+    --status "PUBLISHED"
+```
+```json
+{
+    "environmentTemplateVersion": {
+        "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.1",
+        "createdAt": "2023-03-14T10:16:13.044000+01:00",
+        "description": "[761b382] fix: tags keys",
+        "lastModifiedAt": "2023-03-14T11:51:33.907000+01:00",
+        "majorVersion": "1",
+        "minorVersion": "1",
+        "recommendedMinorVersion": "1",
+        "schema": "schema:\n  format:\n    openapi: \"3.0.0\"\n  environment_input_type: \"VPCEnvironmentInput\"\n  types:\n    VPCEnvironmentInput:\n      type: object\n      description: \"Input properties for my environment\"\n      properties:\n        vpc_cidr:\n          type: string\n          description: \"The CIDR range for your VPC\"\n          default: 10.0.0.0/16\n          pattern: ([0-9]{1,3}\\.){3}[0-9]{1,3}($|/(16|18|24))\n        public_subnet_one_cidr:\n          type: string\n          description: \"The CIDR range for public subnet one\"\n          default: 10.0.0.0/18\n          pattern: ([0-9]{1,3}\\.){3}[0-9]{1,3}($|/(16|18|24))\n        private_subnet_one_cidr:\n          type: string\n          description: \"The CIDR range for private subnet one\"\n          default: 10.0.128.0/18\n          pattern: ([0-9]{1,3}\\.){3}[0-9]{1,3}($|/(16|18|24))",
+        "status": "PUBLISHED",
+        "statusMessage": "",
+        "templateName": "shared-vpc-env"
+    }
+}
+```
