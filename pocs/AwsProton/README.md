@@ -72,11 +72,11 @@ aws proton create-template-sync-config --branch "chore/aws-proton-poc" --reposit
 ```
 The next steps that I have made to the _environment template_ has been adding _tags_ to the resources for making them easier to get filtered from the console dashboard. As mentioned before modifying any file from `infrastructure/` folder would create a new `minor` version.
 
-From the previous _commit_ described before a _minor_ version `1.1` has been created as a `Draft` for being able to **test** it and _publish_ them in case the updated **Cloudformation** _stack_ looks fine.
+From the previous _commit_ described before a _minor_ version `1.2` has been created as a `Draft` for being able to **test** it and _publish_ them in case the updated **Cloudformation** _stack_ looks fine.
 
-![Screenshot_20230314_111038-1](https://user-images.githubusercontent.com/16175933/224968455-222e1035-f21f-429b-8419-d4a83c592339.png)
+![image](https://user-images.githubusercontent.com/16175933/224987370-ace7b2ab-d8f3-4040-b1fb-fe7c561fb97c.png)
 
-Let's configure our new _environment_ for testing the `Draft` template version `1.1`.
+Let's configure our new _environment_ for testing the `Draft` template version `1.2`.
 ```bash
 aws iam list-roles
 ```
@@ -88,23 +88,23 @@ aws proton create-environment \
     --template-name "shared-vpc-env" \
     --proton-service-role-arn "arn:aws:iam::487354732760:role/service-role/aws-proton-poc" \
     --template-major-version "1" \
-    --template-minor-version "1" \
+    --template-minor-version "2" \
     --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml"
 ```
 ```json
 {
     "environment": {
         "arn": "arn:aws:proton:eu-west-1:487354732760:environment/development",
-        "createdAt": "2023-03-14T12:09:34.083000+01:00",
+        "createdAt": "2023-03-14T12:25:06.824000+01:00",
         "deploymentStatus": "IN_PROGRESS",
-        "lastDeploymentAttemptedAt": "2023-03-14T12:09:34.083000+01:00",
+        "lastDeploymentAttemptedAt": "2023-03-14T12:25:06.824000+01:00",
         "name": "development",
         "protonServiceRoleArn": "arn:aws:iam::487354732760:role/service-role/aws-proton-poc",
         "templateName": "shared-vpc-env"
     }
 }
 ```
-Once the `deploymentStatus` becomes _ready_
+Once the `deploymentStatus` becomes `SUCCEEDED` for the _template version_ associated to the _environment_ that means we can publish it after testing the new **Cloudformation** _stack_.
 
 It's also possible to list the _environment template_ versions by using the following command:
 ```bash
@@ -120,6 +120,7 @@ aws proton list-environment-template-versions --template-name "shared-vpc-env"
             "lastModifiedAt": "2023-03-13T17:19:11.843000+01:00",
             "majorVersion": "1",
             "minorVersion": "0",
+            "recommendedMinorVersion": "1",
             "status": "DRAFT",
             "statusMessage": "",
             "templateName": "shared-vpc-env"
@@ -128,9 +129,22 @@ aws proton list-environment-template-versions --template-name "shared-vpc-env"
             "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.1",
             "createdAt": "2023-03-14T10:16:13.044000+01:00",
             "description": "[761b382] fix: tags keys",
-            "lastModifiedAt": "2023-03-14T10:16:15.247000+01:00",
+            "lastModifiedAt": "2023-03-14T11:51:33.907000+01:00",
             "majorVersion": "1",
             "minorVersion": "1",
+            "recommendedMinorVersion": "1",
+            "status": "PUBLISHED",
+            "statusMessage": "",
+            "templateName": "shared-vpc-env"
+        },
+        {
+            "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.2",
+            "createdAt": "2023-03-14T12:24:11.029000+01:00",
+            "description": "[db9dda7] fix: aws prefix not allowed on tags",
+            "lastModifiedAt": "2023-03-14T12:24:12.714000+01:00",
+            "majorVersion": "1",
+            "minorVersion": "2",
+            "recommendedMinorVersion": "1",
             "status": "DRAFT",
             "statusMessage": "",
             "templateName": "shared-vpc-env"
@@ -144,19 +158,19 @@ Let's now choose the latest version for _publishing_ them an making it available
 aws proton update-environment-template-version \
     --template-name "shared-vpc-env" \
     --major-version "1" \
-    --minor-version "1" \
+    --minor-version "2" \
     --status "PUBLISHED"
 ```
 ```json
 {
     "environmentTemplateVersion": {
-        "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.1",
-        "createdAt": "2023-03-14T10:16:13.044000+01:00",
-        "description": "[761b382] fix: tags keys",
-        "lastModifiedAt": "2023-03-14T11:51:33.907000+01:00",
+        "arn": "arn:aws:proton:eu-west-1:487354732760:environment-template/shared-vpc-env:1.2",
+        "createdAt": "2023-03-14T12:24:11.029000+01:00",
+        "description": "[db9dda7] fix: aws prefix not allowed on tags",
+        "lastModifiedAt": "2023-03-14T12:32:32.913000+01:00",
         "majorVersion": "1",
-        "minorVersion": "1",
-        "recommendedMinorVersion": "1",
+        "minorVersion": "2",
+        "recommendedMinorVersion": "2",
         "schema": "schema:\n  format:\n    openapi: \"3.0.0\"\n  environment_input_type: \"VPCEnvironmentInput\"\n  types:\n    VPCEnvironmentInput:\n      type: object\n      description: \"Input properties for my environment\"\n      properties:\n        vpc_cidr:\n          type: string\n          description: \"The CIDR range for your VPC\"\n          default: 10.0.0.0/16\n          pattern: ([0-9]{1,3}\\.){3}[0-9]{1,3}($|/(16|18|24))\n        public_subnet_one_cidr:\n          type: string\n          description: \"The CIDR range for public subnet one\"\n          default: 10.0.0.0/18\n          pattern: ([0-9]{1,3}\\.){3}[0-9]{1,3}($|/(16|18|24))\n        private_subnet_one_cidr:\n          type: string\n          description: \"The CIDR range for private subnet one\"\n          default: 10.0.128.0/18\n          pattern: ([0-9]{1,3}\\.){3}[0-9]{1,3}($|/(16|18|24))",
         "status": "PUBLISHED",
         "statusMessage": "",
@@ -164,3 +178,7 @@ aws proton update-environment-template-version \
     }
 }
 ```
+
+Congratulations you deployed your first _environment_ **Cloudformation** _stack_ associated to an _environment template_ exact _version_.
+
+![image](https://user-images.githubusercontent.com/16175933/224989099-ed22ff28-36b3-49a1-9be5-e279a21a08a8.png)
