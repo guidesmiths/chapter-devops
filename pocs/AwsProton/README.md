@@ -182,3 +182,14 @@ aws proton update-environment-template-version \
 Congratulations you deployed your first _environment_ **Cloudformation** _stack_ associated to an _environment template_ exact _version_.
 
 ![image](https://user-images.githubusercontent.com/16175933/224989099-ed22ff28-36b3-49a1-9be5-e279a21a08a8.png)
+
+For updating the environment template being used we should run:
+```bash
+aws proton update-environment \
+    --name "development" \            
+    --proton-service-role-arn "arn:aws:iam::487354732760:role/service-role/aws-proton-poc" \
+    --template-major-version "1" \  
+    --template-minor-version "4" \                  
+    --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml" \
+    --deployment-type "MINOR_VERSION"
+```
