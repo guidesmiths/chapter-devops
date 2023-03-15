@@ -121,7 +121,7 @@ Resources:
         - Key: "proton-poc"
           Value: "ProtonPOC"
       Subnets:
-        # - !Ref "PublicSubnet1"
+        - !Ref "PublicSubnet1"
         - !Ref "PrivateSubnet1"
       SecurityGroups:
         - !GetAtt VPC.DefaultSecurityGroup
