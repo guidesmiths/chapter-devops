@@ -186,10 +186,10 @@ Congratulations you deployed your first _environment_ **Cloudformation** _stack_
 For updating the environment template being used we should run:
 ```bash
 aws proton update-environment \
-    --name "development" \            
+    --name "development" \
     --proton-service-role-arn "arn:aws:iam::487354732760:role/service-role/aws-proton-poc" \
-    --template-major-version "1" \  
-    --template-minor-version "4" \                  
+    --template-major-version "1" \
+    --template-minor-version "4" \
     --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml" \
     --deployment-type "MINOR_VERSION"
 ```
@@ -205,9 +205,14 @@ Creating a _sync config_ would be needed for creating service versions.
 ```bash
 aws proton create-template-sync-config \
     --template-name "home" \
-    --template-type "SERVICE" \     
-    --repository-provider "GITHUB" \ 
+    --template-type "SERVICE" \
+    --repository-provider "GITHUB" \
     --repository-name "bounteous17/chapter-devops" \
     --branch "chore/aws-proton-poc" \
     --subdirectory "pocs/AwsProton/service-templates/apprunner-svc"
+```
+
+Next steps would be to create the service without any version associated yet.
+```bash
+aws proton create-service-template --name "apprunner-svc"
 ```
