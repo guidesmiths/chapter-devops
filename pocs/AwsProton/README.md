@@ -193,3 +193,21 @@ aws proton update-environment \
     --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml" \
     --deployment-type "MINOR_VERSION"
 ```
+
+## Service template
+
+Now it's time to deploy a __compatible__ _service template_.
+```bash
+aws proton create-service-template --name "home"
+```
+
+Creating a _sync config_ would be needed for creating service versions.
+```bash
+aws proton create-template-sync-config \
+    --template-name "home" \
+    --template-type "SERVICE" \     
+    --repository-provider "GITHUB" \ 
+    --repository-name "bounteous17/chapter-devops" \
+    --branch "chore/aws-proton-poc" \
+    --subdirectory "pocs/AwsProton/service-templates/apprunner-svc"
+```
