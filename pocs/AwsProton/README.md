@@ -295,3 +295,7 @@ Deleting some service:
 ```bash
 aws proton delete-service --name "hello-world-svc"
 ```
+
+```bash
+aws proton update-service-template-version --template-name "apprunner-svc" --major-version "1" --minor-version "0" --status "PUBLISHED"
+```
