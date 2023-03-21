@@ -50,11 +50,11 @@ Resources:
     Type: AWS::AppRunner::Service
     Properties:
       SourceConfiguration:
-        AuthenticationConfiguration:
-          AccessRoleArn:
-            Fn::GetAtt:
-              - ServiceAccessRole
-              - Arn
+        # AuthenticationConfiguration:
+        #   AccessRoleArn:
+        #     Fn::GetAtt:
+        #       - ServiceAccessRole
+        #       - Arn
         ImageRepository:
           ImageConfiguration:
             Port: '{{service_instance.inputs.port}}'
@@ -64,7 +64,7 @@ Resources:
               - Name: SNS_REGION
                 Value: "{{environment.outputs.SNSRegion}}"
           ImageIdentifier: '{{service_instance.inputs.image}}'
-          ImageRepositoryType: ECR
+          ImageRepositoryType: "ECR_PUBLIC"
       InstanceConfiguration:
         Cpu: !FindInMap [TaskSize, {{service_instance.inputs.task_size}}, cpu]
         Memory: !FindInMap [TaskSize, {{service_instance.inputs.task_size}}, memory]

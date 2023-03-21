@@ -12,14 +12,14 @@ Resources:
             Principal:
               Service: build.apprunner.amazonaws.com
         Version: "2012-10-17"
-      Policies:
-        - PolicyName: 'Publish2SNS'
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Action: 'sns:Publish'
-                Resource: 'arn:aws:sns:eu-west-1:487354732760:AWSProton-env-development-cloudformation-yaml-VLFqTZFyzxyWsLy-ping'
+      # Policies:
+      #   - PolicyName: 'Publish2SNS'
+      #     PolicyDocument:
+      #       Version: '2012-10-17'
+      #       Statement:
+      #         - Effect: 'Allow'
+      #           Action: 'sns:Publish'
+      #           Resource: 'arn:aws:sns:eu-west-1:487354732760:AWSProton-env-development-cloudformation-yaml-VLFqTZFyzxyWsLy-ping'
   ServiceAccessRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -37,28 +37,30 @@ Resources:
       Roles:
         - Ref: ServiceAccessRole
   AppRunnerService:
-    Type: AWS::AppRunner::Service
+    Type: "AWS::AppRunner::Service"
     Properties:
       SourceConfiguration:
-        AuthenticationConfiguration:
-          AccessRoleArn:
-            Fn::GetAtt:
-              - ServiceAccessRole
-              - Arn
+        # AuthenticationConfiguration:
+        #   AccessRoleArn:
+        #     Fn::GetAtt:
+        #       - ServiceAccessRole
+        #       - Arn
         ImageRepository:
+          ImageIdentifier: "public.ecr.aws/aws-containers/hello-app-runner:latest"
           ImageConfiguration:
-            Port: '80'
-            RuntimeEnvironmentVariables:
-              - Name: SNS_TOPIC_ARN
-                Value: 'arn:aws:sns:eu-west-1:487354732760:AWSProton-env-development-cloudformation-yaml-VLFqTZFyzxyWsLy-ping'
-              - Name: SNS_REGION
-                Value: "eu-west-1"
-          ImageIdentifier: 'public.ecr.aws/aws-containers/hello-app-runner:latest'
-          ImageRepositoryType: ECR
-      NetworkConfiguration:
-        EgressConfiguration:
-          EgressType: VPC
-          VpcConnectorArn: 'arn:aws:apprunner:eu-west-1:487354732760:vpcconnector/apprunner/1/93550ab4829447029cbcf2e59d659d29'
+            Port: "8080"
+          ImageRepositoryType: "ECR_PUBLIC"
+        AutoDeploymentsEnabled: false
+      InstanceConfiguration: 
+        Cpu: "1024"
+        Memory: "2048"
+      HealthCheckConfiguration: 
+        Protocol: "HTTP"
+        Path: "/"
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
 Outputs:
   AppRunnerServiceARN:
     Value:
