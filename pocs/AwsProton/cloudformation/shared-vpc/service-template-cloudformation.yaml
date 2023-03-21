@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy an Request-driven Web Service based on AWS App Runner.
+
+Resources:
+  ServiceAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: build.apprunner.amazonaws.com
+        Version: "2012-10-17"
+      Policies:
+        - PolicyName: 'Publish2SNS'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 'sns:Publish'
+                Resource: 'arn:aws:sns:eu-west-1:487354732760:AWSProton-env-development-cloudformation-yaml-VLFqTZFyzxyWsLy-ping'
+  ServiceAccessRoleDefaultPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: 
+              - ecr:GetAuthorizationToken
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: ServiceAccessRoleDefaultPolicy
+      Roles:
+        - Ref: ServiceAccessRole
+  AppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      SourceConfiguration:
+        AuthenticationConfiguration:
+          AccessRoleArn:
+            Fn::GetAtt:
+              - ServiceAccessRole
+              - Arn
+        ImageRepository:
+          ImageConfiguration:
+            Port: '80'
+            RuntimeEnvironmentVariables:
+              - Name: SNS_TOPIC_ARN
+                Value: 'arn:aws:sns:eu-west-1:487354732760:AWSProton-env-development-cloudformation-yaml-VLFqTZFyzxyWsLy-ping'
+              - Name: SNS_REGION
+                Value: "eu-west-1"
+          ImageIdentifier: 'public.ecr.aws/aws-containers/hello-app-runner:latest'
+          ImageRepositoryType: ECR
+      NetworkConfiguration:
+        EgressConfiguration:
+          EgressType: VPC
+          VpcConnectorArn: 'arn:aws:apprunner:eu-west-1:487354732760:vpcconnector/apprunner/1/93550ab4829447029cbcf2e59d659d29'
+Outputs:
+  AppRunnerServiceARN:
+    Value:
+      Fn::GetAtt:
+        - AppRunnerService
+        - ServiceArn
+  AppRunnerServiceURL:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Fn::GetAtt:
+              - AppRunnerService
+              - ServiceUrl

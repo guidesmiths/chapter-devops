@@ -241,9 +241,9 @@ aws proton create-template-sync-config \
 ```
 
 Next steps would be to create the service without any version associated yet.
-
+For simplifying this POC we would avoid configuring any pipeline since it's too complex to use the AWS solution for the purpose.
 ```bash
-aws proton create-service-template --name "apprunner-svc"
+aws proton create-service-template --name "apprunner-svc" --pipeline-provisioning "CUSTOMER_MANAGED"
 ```
 
 ```bash
@@ -259,7 +259,12 @@ aws s3 cp /tmp/apprunner-service-template.tar.gz s3://proton-poc-39b4f9ea-ec15-4
 ```
 
 ```bash
-aws proton create-service-template-version --compatible-environment-templates '[{"majorVersion":"1","templateName":"shared-vpc-env"}]' --source '{"s3": {"bucket":"proton-poc-39b4f9ea-ec15-4f1d-b304-275d4bb3728f","key":"apprunner-service-template.tar.gz"}}' --template-name home
+aws proton create-service-template-version --compatible-environment-templates '[{"majorVersion":"1","templateName":"shared-vpc-env"}]' --source '{"s3": {"bucket":"proton-poc-39b4f9ea-ec15-4f1d-b304-275d4bb3728f","key":"apprunner-service-template.tar.gz"}}' --template-name apprunner-svc
+```
+
+Deleting the created template:
+```bash
+aws proton delete-service-template-version --major-version "1" --minor-version "0" --template-name "apprunner-svc"
 ```
 
 ```json
@@ -282,6 +287,11 @@ aws proton create-service-template-version --compatible-environment-templates '[
 }
 ```
 
+For creating a service instance:
 ```bash
-aws proton create-service --name apprunner-svc --spec file://spec/spec.yaml --template-major-version 1 --template-minor-version 0 --template-name home --repository-connection-arn "arn:aws:codestar-connections:eu-west-1:487354732760:connection/a42a60bc-48e8-4246-96ac-78ab55541f30" --repository-id "bounteous17/chapter-devops" --branch-name "chore/aws-proton-poc"
+aws proton create-service --name "hello-world-svc" --spec file://spec/spec.yaml --template-major-version "1" --template-minor-version "0" --template-name "apprunner-svc"
+```
+Deleting some service:
+```bash
+aws proton delete-service --name "hello-world-svc"
 ```
