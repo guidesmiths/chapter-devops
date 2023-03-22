@@ -8,6 +8,8 @@ The choosed **_environment template_** would deploy a *__public__* and __*privat
 
 On the other hand the **_service template_** is going to deploy an `App Runner` instance that has **access to both subnets**. That means in case there are some resources deployed on the _private subnet_ the `App Runner` instance would be able to access them.
 
+Both _**environment**_ and _**service**_ templates needs to be deployed on some `Proton` _environment_. The created _environments_ can also be **linked outside** the current AWS `Proton` account being used.
+
 # Deploying this POC
 
 ## Cloudformation validation
