@@ -222,13 +222,17 @@ aws proton update-environment \
 
 ## Service template
 
-Now it's time to deploy a **compatible** _service template_.
+Next steps would be to create a compatible **_service template_** without any _version_ associated yet. For simplifying this POC we would **avoid configuring** any **_pipeline_** since it's too complex to use the AWS solution for our purpose on it.
 
 ```bash
-aws proton create-service-template --name "home"
+aws proton create-service-template --name "apprunner-svc" --pipeline-provisioning "CUSTOMER_MANAGED"
 ```
 
-Creating a _sync config_ would be needed for creating service versions.
+Creating a simple **_sync config_** would be needed but not for creating _service template_ versions. Instead the objective this time is to **connect** the repository to automatically execute the **optional _pipeline_** in case of new commits. That process is the one responsible to **create service releases**. 
+
+In other words the difference between synchronizing a repo for the **_environment templates_** is that since these **do not contain _pipelines_** we will **create template versions** on every commit added latter. But in the case of the **_service templates_** we are going to **create releases of a service** that depends on the _pipeline_ linked to this template.
+
+In a moment we would see how to create **_service template_** versions manually since there is no _pipeline_ associated.
 
 ```bash
 aws proton create-template-sync-config \
@@ -240,29 +244,31 @@ aws proton create-template-sync-config \
     --subdirectory "pocs/AwsProton/service-templates/apprunner-svc"
 ```
 
-Next steps would be to create the service without any version associated yet.
-For simplifying this POC we would avoid configuring any pipeline since it's too complex to use the AWS solution for the purpose.
-```bash
-aws proton create-service-template --name "apprunner-svc" --pipeline-provisioning "CUSTOMER_MANAGED"
-```
+The only way to create _template versions_ is to upload them to an `s3` bucket. First step would be to compress the template _major versions_ folder and upload the `tar.gz` file.
 
 ```bash
 tar czvf /tmp/apprunner-service-template.tar.gz --directory pocs/AwsProton/service-templates/apprunner-svc .
 ```
 
+List your `s3` buckets and choose one of them for uploading the compressed file.
+
 ```bash
 aws s3 ls
 ```
+
+After choosing the bucket uploading files is really simple.
 
 ```bash
 aws s3 cp /tmp/apprunner-service-template.tar.gz s3://proton-poc-39b4f9ea-ec15-4f1d-b304-275d4bb3728f
 ```
 
+Let's create out first template _major_ and _minor_ template versions linked to the bucket storage.
+
 ```bash
 aws proton create-service-template-version --compatible-environment-templates '[{"majorVersion":"1","templateName":"shared-vpc-env"}]' --source '{"s3": {"bucket":"proton-poc-39b4f9ea-ec15-4f1d-b304-275d4bb3728f","key":"apprunner-service-template.tar.gz"}}' --template-name apprunner-svc
 ```
 
-Deleting the created template:
+- [Optional] Deleting the created template:
 ```bash
 aws proton delete-service-template-version --major-version "1" --minor-version "0" --template-name "apprunner-svc"
 ```
@@ -287,14 +293,32 @@ aws proton delete-service-template-version --major-version "1" --minor-version "
 }
 ```
 
-For creating a service instance:
+On our case the tenplate would contain all the steps for easily create an `App Runner` instance by indicating some basic input param:
+- docker image **public ECR** url
+- http **port** for incomming traffic
+- instance size (`medium` or `large`)
+
+For creating an instance of the service:
 ```bash
 aws proton create-service --name "hello-world-svc" --spec file://spec/spec.yaml --template-major-version "1" --template-minor-version "0" --template-name "apprunner-svc"
 ```
-Deleting some service:
+
+- [Optional] Deleting the created service:
 ```bash
 aws proton delete-service --name "hello-world-svc"
 ```
+
+It's time to update the **_Proton service_** with the **input params** for the resource `App Runner` to be instantiated.
+
+![image](https://user-images.githubusercontent.com/16175933/226874215-021b243e-6bab-4a7f-be8a-3716ad6d199f.png)
+
+Our `App Runner` instance would have been provisioned with some public domain to access it.
+
+![image](https://user-images.githubusercontent.com/16175933/226875225-2477c525-63e1-4f7c-ab37-5046c18dd938.png)
+
+![image](https://user-images.githubusercontent.com/16175933/226876213-72f070c1-d050-46c9-942b-acfa97a57c91.png)
+
+Having verified that our _service template_ resources has been **successfully deployed** we can **publish the version** so that other developers can make use of an stable version by default. That means that the template would no longer appear as a `Draft` then the current status would be `Recommended` **after publishing it**.
 
 ```bash
 aws proton update-service-template-version --template-name "apprunner-svc" --major-version "1" --minor-version "0" --status "PUBLISHED"
