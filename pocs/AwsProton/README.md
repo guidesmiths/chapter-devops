@@ -1,6 +1,14 @@
 # aws-proton-poc
 
-# Deploying POC
+`Aws Proton` is a service for allowing `infrastructure teams only` to create **_environment templates_**. That ones contains platform resources to be created on some choosen **_environment_** that has been created previously.
+
+Besides the `developers teams` can create **_service templates_** that needs to be **compatible** with one or multiple **_environment templates_** infrastructure resources already deployed.
+
+The choosed **_environment template_** would deploy a *__public__* and __*private*__ `VPC` _subnets_ with an `App Runner VPC connector`.
+
+On the other hand the **_service template_** is going to deploy an `App Runner` instance that has **access to both subnets**. That means in case there are some resources deployed on the _private subnet_ the `App Runner` instance would be able to access them.
+
+# Deploying this POC
 
 ## Cloudformation validation
 
