@@ -30,21 +30,38 @@ After having written the `Cloudformation` template to **deploy an image** from a
 
 # Deploying this POC
 
-## Cloudformation validation
-
-At the beginning of this POC Before adding more complexity this templates was compatible with **Cloudformation**.
-That templates stopped being compatible with it at the moment in which we added `environment` variables that can only me accessed by **Proton**.
-So this section only applies to the templates that does not contains yet any parametrization.
-
-Before deploying any Proton templates we would need to validate that the infrastructure syntax to be deployed is valid.
-That makes things easy to debug before adding a new template version on Proton.
-
-It's important to notice that we are choosing a different region for deploying and validating the stacks.
-
-Environment template **Cloudformation** definition being deployed:
-
+## Project structure
 ```bash
-aws cloudformation create-stack --stack-name "shared-vpc-test" --region "eu-west-2" --template-body "file://environment-templates/shared-vpc-env/v1/infrastructure/cloudformation.yaml"
+.
+├── cloudformation # environment and service template with static parameter values
+│   └── shared-vpc # cloudformation definitions
+│       ├── environment-template-cloudformation.yaml
+│       └── service-template-cloudformation.yaml
+├── environment-templates # infrastructure team available templates
+│   └── shared-vpc-env
+│       ├── README.md
+│       ├── spec
+│       │   └── spec.yaml
+│       └── v1
+│           ├── infrastructure # cloudformation definitions with jinja
+│           │   ├── cloudformation.yaml
+│           │   └── manifest.yaml
+│           └── schema
+│               └── schema.yaml # input parameters with default VPC values
+├── LICENSE
+├── README.md
+└── service-templates # developers team created templates
+    └── apprunner-svc
+        ├── README.md
+        ├── spec
+        │   └── spec.yaml
+        └── v1
+            ├── .compatible-envs # list of compatible environment templates
+            ├── instance_infrastructure # cloudformation definitions with jinja
+            │   ├── cloudformation.yaml
+            │   └── manifest.yaml
+            └── schema
+                └── schema.yaml # input parameters with default App Runner values
 ```
 
 ## Environment template
