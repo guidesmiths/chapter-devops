@@ -1,6 +1,10 @@
 # aws-proton-poc
 
-`Aws Proton` is a service for allowing `infrastructure teams only` to create **_environment templates_**. That ones contains platform resources to be created on some choosen **_environment_** that has been created previously.
+# Conclusions
+
+## What is `Proton`?
+
+`Proton` is an `AWS` service for allowing `infrastructure teams only` to create **_environment templates_**. That ones contains platform resources to be created on some choosen **_environment_** that has been created previously.
 
 Besides the `developers teams` would be able to create **_service templates_** that needs to be **compatible** with one or multiple **_environment templates_** infrastructure resources already deployed. That compatibility is going to be always indicated through the file `.compatible-envs` available on the template root folder.
 
@@ -10,9 +14,15 @@ On the other hand the **_service template_** called `apprunner-svc` is going to 
 
 Both _**environment**_ and _**service**_ templates types needs to be deployed on some `Proton` _environment_. The created _environments_ can also be **linked outside** the current AWS `Proton` account currently being used.
 
-# Conclusions
+## Who is `Proton` intended for?
+
+Probably the **most appropriate** use of this service is in large, **already consolidated teams** that seek to improve their deployment procedures.
+This is so because it would prevent them from having blocks when deploying new resources in AWS. Since there is an **infrastructure** team that has already published templates on demand so that the **developer does not have to worry about asking the infrastructure team for a new deployment**. This is possible thanks to the fact that the Proton service uses an admin `IAM` _role_ capable of performing all actions on the resources. In this way it is not necessary to assign extra permissions in the infrastructure to the developers.
+
+As you are probably thinking this is **not designed for small teams** that does not worry about splitting roles between infrastructure and development. The most smart solutions for that use cases would be to keep using `CDK` or `Terraform`. That's because this allows all developers to create resources in the infrastructure without any type of limitation, which Proton does not allow.
 
 ## What's the relation between `Proton` and `Cloudformation`?
+
 The `Proton` templates can only be written using `AWS Cloudformation` syntax, so this will make things a bit **less agile**, especially if you don't have previous experience with it. A good starting point to **begin with Proton** would be to **write our templates without parameterization** so that they can be deployed in `Cloudformation` and verify that a functional `stack` is generated.
 
 This POC includes the folder `./cloudformation` containing the _templates_ before being parameterized for making them compatible with `Proton`.
