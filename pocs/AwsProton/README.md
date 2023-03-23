@@ -2,13 +2,27 @@
 
 `Aws Proton` is a service for allowing `infrastructure teams only` to create **_environment templates_**. That ones contains platform resources to be created on some choosen **_environment_** that has been created previously.
 
-Besides the `developers teams` would be able to create **_service templates_** that needs to be **compatible** with one or multiple **_environment templates_** infrastructure resources already deployed.
+Besides the `developers teams` would be able to create **_service templates_** that needs to be **compatible** with one or multiple **_environment templates_** infrastructure resources already deployed. That compatibility is going to be always indicated through the file `.compatible-envs` available on the template root folder.
 
 On this POC the **_environment template_** called `shared-vpc-env` would deploy a __*public*__ and __*private*__ `VPC` _subnets_ with an `App Runner VPC connector`.
 
 On the other hand the **_service template_** called `apprunner-svc` is going to deploy an `App Runner` instance that has **access to both subnets** since it's using an already created connector explained above. That means in case there are some resources deployed on the _private subnet_ the `App Runner` instance would be able to access them. The type of resources that would be deployed on a _private_ subnet are those that does not make sense to be publicly accessible, for example: databases, queuing systems, etc...
 
 Both _**environment**_ and _**service**_ templates types needs to be deployed on some `Proton` _environment_. The created _environments_ can also be **linked outside** the current AWS `Proton` account currently being used.
+
+# Conclusions
+
+## What's the relation between `Proton` and `Cloudformation`?
+The `Proton` templates can only be written using `AWS Cloudformation` syntax, so this will make things a bit **less agile**, especially if you don't have previous experience with it. A good starting point to **begin with Proton** would be to **write our templates without parameterization** so that they can be deployed in `Cloudformation` and verify that a functional `stack` is generated.
+
+This POC includes the folder `./cloudformation` containing the _templates_ before being parameterized for making them compatible with `Proton`.
+```bash
+aws cloudformation create-stack --stack-name "hello-world" --region "eu-west-1" --template-body "file://cloudformation/shared-vpc/service-template-cloudformation.yaml" --capabilities "CAPABILITY_IAM"
+```
+The command seen above would create an `stack` on `Cloudformation` that includes an `App runner` resource instance.
+
+When I got this to work I began to investigate how to parameterize with `jinja` the values of the template to make them compatible with `Proton`.
+Both template types includes the file `manifest.yaml` for allowing `Cloudformation` templates to **receive some input** params through `schema/schema.yaml` config file.
 
 # Deploying this POC
 
