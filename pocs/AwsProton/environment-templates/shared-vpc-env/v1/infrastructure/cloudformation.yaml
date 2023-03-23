@@ -5,14 +5,13 @@ Description: A VPC with one private subnets
 Mappings:
   SubnetConfig:
     VPC:
-      CIDR: '{{ environment.inputs.vpc_cidr}}'
+      CIDR: "{{ environment.inputs.vpc_cidr}}"
     Public1:
-      CIDR: '{{ environment.inputs.public_subnet_one_cidr}}'
+      CIDR: "{{ environment.inputs.public_subnet_one_cidr}}"
     Private1:
-      CIDR: '{{ environment.inputs.private_subnet_one_cidr}}'
+      CIDR: "{{ environment.inputs.private_subnet_one_cidr}}"
     ApprunnerVpcConnector:
-      name: 'apprunner'
-
+      name: "apprunner"
 
 Resources:
   VPC:
@@ -23,7 +22,10 @@ Resources:
       EnableDnsSupport: true
       InstanceTenancy: default
       Tags:
-        - ProtonPOC
+        - Key: "proton-poc"
+          Value: "ProtonPOC"
+        - Key: "1"
+          Value: "proton-poc:shared-services"
 
   PublicSubnet1:
     Type: "AWS::EC2::Subnet"
@@ -36,7 +38,10 @@ Resources:
           - Fn::GetAZs: { Ref: "AWS::Region" }
       MapPublicIpOnLaunch: true
       Tags:
-        - ProtonPOC
+        - Key: "proton-poc"
+          Value: "ProtonPOC"
+        - Key: "1"
+          Value: "proton-poc:shared-services"
   PublicSubnet1RouteTable:
     Type: "AWS::EC2::RouteTable"
     Properties:
@@ -77,7 +82,8 @@ Resources:
           - Fn::GetAZs: { Ref: "AWS::Region" }
       MapPublicIpOnLaunch: false
       Tags:
-        - ProtonPOC
+        - Key: "proton-poc"
+          Value: "ProtonPOC"
   PrivateSubnet1RouteTable:
     Type: "AWS::EC2::RouteTable"
     Properties:
@@ -93,32 +99,77 @@ Resources:
       RouteTableId: !Ref PrivateSubnet1RouteTable
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref PublicSubnet1NATGateway
-
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
     Properties:
       Tags:
-        - ProtonPOC
+        - Key: "proton-poc"
+          Value: "ProtonPOC"
   GatewayAttachement:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
-      Tags:
-        - ProtonPOC
+  pingSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AWS::StackName}-ping"
+      KmsMasterKeyId: "alias/aws/sns"
+  pingSNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    DependsOn: pingSNSTopic
+    Properties:
+      Topics:
+        - !Ref pingSNSTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Action:
+              - sns:Subscribe
+            Resource: !Ref pingSNSTopic
+            Condition:
+              StringEquals:
+                "sns:Protocol": "sqs"
+
+  SNSVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: Yes
+      SecurityGroupIds:
+        - !GetAtt VPC.DefaultSecurityGroup
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.sns"
+      SubnetIds:
+        - !Ref "PublicSubnet1"
+      VpcEndpointType: Interface
+      VpcId: !Ref VPC
 
   ApprunnerVpcConnector:
     Type: AWS::AppRunner::VpcConnector
     Properties:
-      VpcConnectorName: !FindInMap ["SubnetConfig", "ApprunnerVpcConnector", "name"]
+      VpcConnectorName:
+        !FindInMap ["SubnetConfig", "ApprunnerVpcConnector", "name"]
       Tags:
-        - ProtonPOC
+        - Key: "proton-poc"
+          Value: "ProtonPOC"
       Subnets:
         - !Ref "PublicSubnet1"
         - !Ref "PrivateSubnet1"
       SecurityGroups:
         - !GetAtt VPC.DefaultSecurityGroup
+
 Outputs:
+  SNSTopicArn:
+    Description: The name of the SNS Topic
+    Value: !Ref 'pingSNSTopic'
+  SNSTopicName:
+    Description: TopicName of the SNS Topic
+    Value: !GetAtt pingSNSTopic.TopicName
+  SNSRegion:
+    Description: Region of the SNS Topic
+    Value: !Ref 'AWS::Region'
   VPC:
     Description: The ID of the VPC that this stack is deployed in
     Value: !Ref "VPC"

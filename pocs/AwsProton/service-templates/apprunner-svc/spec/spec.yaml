@@ -1,8 +1,4 @@
 proton: ServiceSpec
-pipeline:
-  service_dir: ecs-static-website
-  dockerfile: Dockerfile
-  unit_test_command: echo 'add your unit test command here'
 instances:
-  - name: apprunner-svc-prod
-    environment: vpc-env-prod
+  - name: apprunner-svc-dev
+    environment: development

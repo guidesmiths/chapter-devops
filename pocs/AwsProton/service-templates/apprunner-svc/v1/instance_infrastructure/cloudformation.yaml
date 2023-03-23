@@ -11,63 +11,27 @@ Mappings:
       memory: 4096
 
 Resources:
-  ServiceAccessRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: build.apprunner.amazonaws.com
-        Version: "2012-10-17"
-      Policies:
-        - PolicyName: 'Publish2SNS'
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Action: 'sns:Publish'
-                Resource: '{{environment.outputs.SNSTopicArn}}'
-  ServiceAccessRoleDefaultPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action: 
-              - ecr:GetAuthorizationToken
-              - ecr:BatchCheckLayerAvailability
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-            Effect: Allow
-            Resource: "*"
-        Version: "2012-10-17"
-      PolicyName: ServiceAccessRoleDefaultPolicy
-      Roles:
-        - Ref: ServiceAccessRole
   {% if service_instance.inputs.image is defined %}
   AppRunnerService:
     Type: AWS::AppRunner::Service
     Properties:
       SourceConfiguration:
-        AuthenticationConfiguration:
-          AccessRoleArn:
-            Fn::GetAtt:
-              - ServiceAccessRole
-              - Arn
         ImageRepository:
           ImageConfiguration:
             Port: '{{service_instance.inputs.port}}'
-            RuntimeEnvironmentVariables:
-              - Name: SNS_TOPIC_ARN
-                Value: '{"ping":"{{environment.outputs.SNSTopicArn}}"}'
-              - Name: SNS_REGION
-                Value: "{{environment.outputs.SNSRegion}}"
           ImageIdentifier: '{{service_instance.inputs.image}}'
-          ImageRepositoryType: ECR
+          ImageRepositoryType: "ECR_PUBLIC"
+        AutoDeploymentsEnabled: false
       InstanceConfiguration:
         Cpu: !FindInMap [TaskSize, {{service_instance.inputs.task_size}}, cpu]
         Memory: !FindInMap [TaskSize, {{service_instance.inputs.task_size}}, memory]
+      HealthCheckConfiguration: 
+        Protocol: "HTTP"
+        Path: "/"
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
       NetworkConfiguration:
         EgressConfiguration:
           EgressType: VPC
