@@ -24,6 +24,10 @@ The command seen above would create an `stack` on `Cloudformation` that includes
 When I got this to work I began to investigate how to parameterize with `jinja` the values of the template to make them compatible with `Proton`.
 Both template types includes the file `manifest.yaml` for allowing `Cloudformation` templates to **receive some input** params through `schema/schema.yaml` config file.
 
+## How to speed up the start-up process with `Proton`?
+
+After having written the `Cloudformation` template to **deploy an image** from a **public ECR** in the `App Runner` I was getting permission errors when pulling the image. So I decided to use <a href="https://former2.com/">Former2</a> to generate a `Cloudformation` template from an `App Runner` resource that I manually created from the `AWS dashboard` and it was working fine. In this way I obtained a template for `Cloudformation` ready to be parameterized by using `jinja`.
+
 # Deploying this POC
 
 ## Cloudformation validation
@@ -40,7 +44,7 @@ It's important to notice that we are choosing a different region for deploying a
 Environment template **Cloudformation** definition being deployed:
 
 ```bash
-aws cloudformation create-stack --stack-name "shared-vpc-test" --region "eu-west-2" --template-body "file://pocs/AwsProton/environment-templates/shared-vpc-env/v1/infrastructure/cloudformation.yaml"
+aws cloudformation create-stack --stack-name "shared-vpc-test" --region "eu-west-2" --template-body "file://environment-templates/shared-vpc-env/v1/infrastructure/cloudformation.yaml"
 ```
 
 ## Environment template
@@ -102,12 +106,12 @@ aws proton create-repository \
 Now that the repository has been created on **Proton** we are able sync _major_ and _minor_ \*template versions for the choosen _environment template_ on every new _commit_ that affects the `infrstructure/` folder generating changes.
 
 ```bash
-aws proton create-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "pocs/AwsProton/environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
+aws proton create-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
 ```
 
 Sometimes the *commits trigger* is being executed inmediately and we should run that manually:
 ```bash
-aws proton update-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "pocs/AwsProton/environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
+aws proton update-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
 ```
 
 The next steps that I have made to the _environment template_ has been adding _tags_ to the resources for making them easier to get filtered from the console dashboard. As mentioned before modifying any file from `infrastructure/` folder would create a new `minor` version.
@@ -132,7 +136,7 @@ aws proton create-environment \
     --proton-service-role-arn "arn:aws:iam::487354732760:role/service-role/aws-proton-poc" \
     --template-major-version "1" \
     --template-minor-version "2" \
-    --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml"
+    --spec "file://environment-templates/shared-vpc-env/spec/spec.yaml"
 ```
 
 ```json
@@ -240,7 +244,7 @@ aws proton update-environment \
     --proton-service-role-arn "arn:aws:iam::487354732760:role/service-role/aws-proton-poc" \
     --template-major-version "1" \
     --template-minor-version "4" \
-    --spec "file://pocs/AwsProton/environment-templates/shared-vpc-env/spec/spec.yaml" \
+    --spec "file://environment-templates/shared-vpc-env/spec/spec.yaml" \
     --deployment-type "MINOR_VERSION"
 ```
 
@@ -265,13 +269,13 @@ aws proton create-template-sync-config \
     --repository-provider "GITHUB" \
     --repository-name "bounteous17/chapter-devops" \
     --branch "chore/aws-proton-poc" \
-    --subdirectory "pocs/AwsProton/service-templates/apprunner-svc"
+    --subdirectory "service-templates/apprunner-svc"
 ```
 
 The only way to create _template versions_ is to upload them to an `s3` bucket. First step would be to compress the template _major versions_ folder and upload the `tar.gz` file.
 
 ```bash
-tar czvf /tmp/apprunner-service-template.tar.gz --directory pocs/AwsProton/service-templates/apprunner-svc .
+tar czvf /tmp/apprunner-service-template.tar.gz --directory service-templates/apprunner-svc .
 ```
 
 List your `s3` buckets and choose one of them for uploading the compressed file.
