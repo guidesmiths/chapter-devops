@@ -2,13 +2,13 @@
 
 `Aws Proton` is a service for allowing `infrastructure teams only` to create **_environment templates_**. That ones contains platform resources to be created on some choosen **_environment_** that has been created previously.
 
-Besides the `developers teams` can create **_service templates_** that needs to be **compatible** with one or multiple **_environment templates_** infrastructure resources already deployed.
+Besides the `developers teams` would be able to create **_service templates_** that needs to be **compatible** with one or multiple **_environment templates_** infrastructure resources already deployed.
 
-The choosed **_environment template_** would deploy a *__public__* and __*private*__ `VPC` _subnets_ with an `App Runner VPC connector`.
+On this POC the **_environment template_** called `shared-vpc-env` would deploy a __*public*__ and __*private*__ `VPC` _subnets_ with an `App Runner VPC connector`.
 
-On the other hand the **_service template_** is going to deploy an `App Runner` instance that has **access to both subnets**. That means in case there are some resources deployed on the _private subnet_ the `App Runner` instance would be able to access them.
+On the other hand the **_service template_** called `apprunner-svc` is going to deploy an `App Runner` instance that has **access to both subnets** since it's using an already created connector explained above. That means in case there are some resources deployed on the _private subnet_ the `App Runner` instance would be able to access them. The type of resources that would be deployed on a _private_ subnet are those that does not make sense to be publicly accessible, for example: databases, queuing systems, etc...
 
-Both _**environment**_ and _**service**_ templates needs to be deployed on some `Proton` _environment_. The created _environments_ can also be **linked outside** the current AWS `Proton` account being used.
+Both _**environment**_ and _**service**_ templates types needs to be deployed on some `Proton` _environment_. The created _environments_ can also be **linked outside** the current AWS `Proton` account currently being used.
 
 # Deploying this POC
 
