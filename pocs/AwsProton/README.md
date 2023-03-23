@@ -80,7 +80,7 @@ aws proton create-environment-template --name "shared-vpc-env"
 
 For being able to update the _environment template_ for linking some definitions a new repository needs to be configured.
 After the following step the template would be available for creating the **Cloudformation** _stack_.
-First of all we would need to list our repositories connections already configured from **Codestar** service.
+First of all we need to list our repositories connections already configured from **Codestar** service.
 
 ```bash
 aws codestar-connections list-connections --provider-type "GitHub"
@@ -120,7 +120,7 @@ aws proton create-repository \
     --encryption-key "arn:aws:kms:region-id:123456789012:key/bPxRfiCYEXAMPLEKEY"
 ```
 
-Now that the repository has been created on **Proton** we are able sync _major_ and _minor_ \*template versions for the choosen _environment template_ on every new _commit_ that affects the `infrstructure/` folder generating changes.
+Now that the repository has been created on **Proton** we are able sync _major_ and _minor_ _template_ versions for the choosen _environment template_ on every new _commit_ that affects the `infrstructure/` folder generating changes.
 
 ```bash
 aws proton create-template-sync-config --branch "chore/aws-proton-poc" --repository-name "bounteous17/chapter-devops" --repository-provider "GITHUB" --subdirectory "environment-templates/shared-vpc-env" --template-name "shared-vpc-env" --template-type "ENVIRONMENT"
@@ -277,7 +277,7 @@ Creating a simple **_sync config_** would be needed but not for creating _servic
 
 In other words the difference between synchronizing a repo for the **_environment templates_** is that since these **do not contain _pipelines_** we will **create template versions** on every commit added latter. But in the case of the **_service templates_** we are going to **create releases of a service** that depends on the _pipeline_ linked to this template.
 
-In a moment we would see how to create **_service template_** versions manually since there is no _pipeline_ associated.
+In a moment we would see how to create **_service releases_** versions manually since there is no _pipeline_ associated.
 
 ```bash
 aws proton create-template-sync-config \
@@ -289,7 +289,7 @@ aws proton create-template-sync-config \
     --subdirectory "service-templates/apprunner-svc"
 ```
 
-The only way to create _template versions_ is to upload them to an `s3` bucket. First step would be to compress the template _major versions_ folder and upload the `tar.gz` file.
+The only way to create _template versions_ is to upload them to an `s3` bucket. First step would be to compress the template _major versions_ folder and upload the `.tar.gz` file.
 
 ```bash
 tar czvf /tmp/apprunner-service-template.tar.gz --directory service-templates/apprunner-svc .
@@ -307,7 +307,7 @@ After choosing the bucket uploading files is really simple.
 aws s3 cp /tmp/apprunner-service-template.tar.gz s3://proton-poc-39b4f9ea-ec15-4f1d-b304-275d4bb3728f
 ```
 
-Let's create out first template _major_ and _minor_ template versions linked to the bucket storage.
+Let's create out first _major_ and _minor_ template versions linked to the bucket storage.
 
 ```bash
 aws proton create-service-template-version --compatible-environment-templates '[{"majorVersion":"1","templateName":"shared-vpc-env"}]' --source '{"s3": {"bucket":"proton-poc-39b4f9ea-ec15-4f1d-b304-275d4bb3728f","key":"apprunner-service-template.tar.gz"}}' --template-name apprunner-svc
@@ -338,7 +338,7 @@ aws proton delete-service-template-version --major-version "1" --minor-version "
 }
 ```
 
-On our case the tenplate would contain all the steps for easily create an `App Runner` instance by indicating some basic input param:
+On our case the template would contain all the steps for easily create an `App Runner` instance by indicating some basic input param:
 - docker image **public ECR** url
 - http **port** for incomming traffic
 - instance size (`medium` or `large`)
@@ -360,6 +360,9 @@ It's time to update the **_Proton service_** with the **input params** for the r
 Our `App Runner` instance would have been provisioned with some public domain to access it.
 
 ![image](https://user-images.githubusercontent.com/16175933/226875225-2477c525-63e1-4f7c-ab37-5046c18dd938.png)
+
+Since the `App Runner` instance is publically accessible we are able to establish the connection with the domain.
+But non of the resources on the other subnet, the _private_ one are exposed publically.
 
 ![image](https://user-images.githubusercontent.com/16175933/226876213-72f070c1-d050-46c9-942b-acfa97a57c91.png)
 
