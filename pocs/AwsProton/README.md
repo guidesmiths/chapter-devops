@@ -26,7 +26,7 @@ Both template types includes the file `manifest.yaml` for allowing `Cloudformati
 
 ## How to speed up the start-up process with `Proton`?
 
-After having written the `Cloudformation` template to **deploy an image** from a **public ECR** in the `App Runner` I was getting permission errors when pulling the image. So I decided to use <a href="https://former2.com/">Former2</a> to generate a `Cloudformation` template from an `App Runner` resource that I manually created from the `AWS dashboard` and it was working fine. In this way I obtained a template for `Cloudformation` ready to be parameterized by using `jinja`.
+After having written the `Cloudformation` template to **deploy an image** from a **public ECR** in the `App Runner` I was getting permission errors when pulling the image. So I decided to use <a href="https://former2.com/">Former2</a> to generate a `Cloudformation` template from an `App Runner` instance that I manually created from the `AWS dashboard` and it was working fine. In this way I obtained a template for `Cloudformation` ready to be parameterized by using `jinja`.
 
 # Deploying this POC
 
