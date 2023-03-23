@@ -12,14 +12,6 @@ Resources:
             Principal:
               Service: build.apprunner.amazonaws.com
         Version: "2012-10-17"
-      # Policies:
-      #   - PolicyName: 'Publish2SNS'
-      #     PolicyDocument:
-      #       Version: '2012-10-17'
-      #       Statement:
-      #         - Effect: 'Allow'
-      #           Action: 'sns:Publish'
-      #           Resource: 'arn:aws:sns:eu-west-1:487354732760:AWSProton-env-development-cloudformation-yaml-VLFqTZFyzxyWsLy-ping'
   ServiceAccessRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -40,11 +32,6 @@ Resources:
     Type: "AWS::AppRunner::Service"
     Properties:
       SourceConfiguration:
-        # AuthenticationConfiguration:
-        #   AccessRoleArn:
-        #     Fn::GetAtt:
-        #       - ServiceAccessRole
-        #       - Arn
         ImageRepository:
           ImageIdentifier: "public.ecr.aws/aws-containers/hello-app-runner:latest"
           ImageConfiguration:
